@@ -1,0 +1,166 @@
+image: node:20
+
+pipelines:
+  branches:
+    develop:
+      - parallel:
+          - step:
+              name: Test
+              caches:
+                - node
+              script:
+                - npm install
+                - npm test
+          - step:
+              name: Code linting
+              script:
+                - npm install eslint
+                - npx eslint .
+              caches:
+                - node
+      - step:
+          name: Sonarqube
+          script:
+            - apt-get update && apt-get install -y openssh-client jq
+            - mkdir -p ~/.ssh
+            - echo "$SSH_KEY_QA_B64" | base64 -d > ~/.ssh/bitbucket_pipeline_key
+            - chmod 600 ~/.ssh/bitbucket_pipeline_key
+            - sed -i 's/\r$//' ~/.ssh/bitbucket_pipeline_key
+            - ssh-keyscan -p "$SSH_PORT_QA" "$SSH_HOST_QA" >> ~/.ssh/known_hosts
+            - |
+              ssh -i ~/.ssh/bitbucket_pipeline_key \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_QA" \
+                "$SSH_USER_QA@$SSH_HOST_QA" \
+                "cd $PROJECT_FOLDER_QA && \
+                 git fetch origin develop && \
+                 git reset --hard origin/develop && \
+                ($SONAR_BIN_QA -Dsonar.projectKey=$SONAR_PROJECT_QA -Dsonar.sources=src \
+                  -Dsonar.host.url=$SONAR_HOST_QA -Dsonar.token=$SONAR_TOKEN_QA || false) && \
+                sleep 10"
+            - |
+              STATUS=$(
+                curl -s -u "$SONAR_TOKEN_QA:" \
+                  "https://$SONAR_HOST_QA/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_QA" \
+                  | jq -r '.projectStatus.status'
+              )
+            - echo "$STATUS"
+      - step:
+          name: Deploy
+          script:
+            - apt-get update && apt-get install -y openssh-client
+            - mkdir -p ~/.ssh
+            - echo "$SSH_KEY_QA_B64" | base64 -d > ~/.ssh/bitbucket_pipeline_key
+            - chmod 600 ~/.ssh/bitbucket_pipeline_key
+            - sed -i 's/\r$//' ~/.ssh/bitbucket_pipeline_key
+            - ssh-keyscan -p "$SSH_PORT_QA" "$SSH_HOST_QA" >> ~/.ssh/known_hosts
+            - |
+              ssh -i ~/.ssh/bitbucket_pipeline_key \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_QA" \
+                "$SSH_USER_QA@$SSH_HOST_QA" \
+                "cd $PROJECT_FOLDER_QA && \
+                 git fetch origin develop && \
+                 git reset --hard origin/develop && \
+                 (docker compose down || true) && \
+                 docker compose up -d"
+            - |
+              ssh -i ~/.ssh/bitbucket_pipeline_key \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_QA" \
+                "$SSH_USER_QA@$SSH_HOST_QA" \ "docker exec $APP_DOCKER_CONTAINER_NAME_QA npm run migrate:run"
+            - |
+              ssh -i ~/.ssh/bitbucket_pipeline_key \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_QA" \
+                "$SSH_USER_QA@$SSH_HOST_QA" \ "docker exec $APP_DOCKER_CONTAINER_NAME_QA npm run seed"      
+            - |
+              ssh -i ~/.ssh/bitbucket_pipeline_key \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_QA" \
+                "$SSH_USER_QA@$SSH_HOST_QA" \ "
+                    cd $PROXY_FOLDER_QA && \
+                    docker-compose down && \
+                    docker-compose up -d"
+
+
+    main:
+      - parallel:
+          - step:
+              name: Test
+              caches:
+                - node
+              script:
+                - npm install
+                - npm test
+          - step:
+              name: Code linting
+              caches:
+                - node
+              script:
+                - npm install eslint
+                - npx eslint .
+      - step:
+          name: Sonarqube
+          script:
+            - apt-get update && apt-get install -y openssh-client jq
+            - mkdir -p ~/.ssh
+            - echo "$SSH_KEY_PROD_B64" | base64 -d > ~/.ssh/id_rsa
+            - chmod 600 ~/.ssh/id_rsa
+            - sed -i 's/\r$//' ~/.ssh/id_rsa
+            - ssh-keyscan -p "$SSH_PORT_PROD" "$SSH_HOST_PROD" >> ~/.ssh/known_hosts
+            - |
+              ssh -i ~/.ssh/id_rsa \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_PROD" \
+                "$SSH_USER_PROD@$SSH_HOST_PROD" \
+                "cd $PROJECT_FOLDER_PROD && \
+                git fetch origin main && \
+                git reset --hard origin/main && \
+                ($SONAR_BIN_PROD -Dsonar.projectKey=$SONAR_PROJECT_PROD -Dsonar.sources=src \
+                  -Dsonar.host.url=$SONAR_HOST_PROD -Dsonar.token=$SONAR_TOKEN_PROD || false) && \
+                sleep 10"
+            - |
+              STATUS=$(
+                curl -s -u "$SONAR_TOKEN_PROD:" \
+                  "https://$SONAR_HOST_PROD/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_PROD" \
+                  | jq -r '.projectStatus.status'
+              )
+            - echo "$STATUS"
+      - step:
+          name: Deploy
+          script:
+            - apt-get update && apt-get install -y openssh-client
+            - mkdir -p ~/.ssh
+            - echo "$SSH_KEY_PROD_B64" | base64 -d > ~/.ssh/id_rsa
+            - chmod 600 ~/.ssh/id_rsa
+            - sed -i 's/\r$//' ~/.ssh/id_rsa
+            - ssh-keyscan -p "$SSH_PORT_PROD" "$SSH_HOST_PROD" >> ~/.ssh/known_hosts
+            - |
+              ssh -i ~/.ssh/id_rsa \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_PROD" \
+                "$SSH_USER_PROD@$SSH_HOST_PROD" \
+                "cd $PROJECT_FOLDER_PROD && \
+                 git fetch origin main && \
+                 git reset --hard origin/main && \
+                 (docker compose down || true) && \
+                 docker compose up -d"
+            - |
+              ssh -i ~/.ssh/id_rsa \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_PROD" \
+                "$SSH_USER_PROD@$SSH_HOST_PROD" \ "docker exec $APP_DOCKER_CONTAINER_NAME_PROD npm run migrate:run"
+            - |
+              ssh -i ~/.ssh/id_rsa \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_PROD" \
+                "$SSH_USER_PROD@$SSH_HOST_PROD" \ "(docker exec $APP_DOCKER_CONTAINER_NAME_PROD npm run seed || true)"      
+            - |
+              ssh -i ~/.ssh/id_rsa \
+                -o StrictHostKeyChecking=yes \
+                -p "$SSH_PORT_PROD" \
+                "$SSH_USER_PROD@$SSH_HOST_PROD" \ "
+                    cd $PROXY_FOLDER_PROD && \
+                    docker compose down && \
+                    docker compose up -d"               

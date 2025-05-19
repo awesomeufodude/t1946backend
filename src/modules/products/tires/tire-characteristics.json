@@ -1,0 +1,74 @@
+[
+  {
+    "code": "usePickup",
+    "title": "Este vehículo sirve para vehículos tipo",
+    "description": "Camioneta",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_pickup_image.png"
+  },
+  {
+    "code": "useElectric",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "Eléctrico",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_electric_image.png"
+  },
+  {
+    "code": "useCar",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "Sedán",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_car_image.png"
+  },
+  {
+    "code": "useHatcback",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "Hatchback",
+    "image": ""
+  },
+  {
+    "code": "useSport",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "Deportivo",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_sport_image.png"
+  },
+  {
+    "code": "useSuv",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "SUV",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_suv_image.png"
+  },
+  {
+    "code": "useCommercial",
+    "title": "Este neumático sirve para vehículos tipo",
+    "description": "Comercial",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/use_commercial_image.png"
+  },
+  {
+    "code": "usage-on-road",
+    "title": "Este neumático es apto para:",
+    "description": "",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/feature_on_road_image.png"
+  },
+  {
+    "code": "usage-off-road",
+    "title": "Este neumático es apto para:",
+    "description": "",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/feature_off_road_image.png"
+  },
+  {
+    "code": "usage-off-on-road",
+    "title": "Este neumático es apto para:",
+    "description": "",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/feature_onoff_road_image.png"
+  },
+  {
+    "code": "load",
+    "title": "Carga máxima",
+    "description": "Este número indica la capacidad máxima de peso que un neumático puede soportar. Cada índice corresponde a un peso específico en kilogramos. Por ejemplo, un índice de carga de 91 significa que el neumático puede soportar hasta 615 kg. Es crucial asegurarse de que los neumáticos puedan soportar el peso del vehículo, incluidos los pasajeros y la carga, para garantizar una conducción segura.",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/feature_load_image.webp"
+  },
+  {
+    "code": "speed",
+    "title": "Velocidad máxima",
+    "description": "Esta letra indica la velocidad máxima a la que un neumático puede circular de manera segura. Por ejemplo, una letra \"T\" significa que el neumático puede manejar velocidades de hasta 190 km/h. Elegir un neumático con el índice de velocidad adecuado es importante para mantener la seguridad y el rendimiento del vehículo a diferentes velocidades.",
+    "image": "https://qa-t1946.leon.borealis.cl/static/content/features/feature_speed_image.webp"
+  }
+]
